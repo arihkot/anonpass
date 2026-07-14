@@ -23,8 +23,12 @@ jobs:
       - name: Compile Contracts
         run: |
           mkdir -p frontend/src/lib/managed
-          compact compile contracts/age_verifier.compact --target typescript -o frontend/src/lib/managed/
-          compact compile contracts/age_verifier.compact --target javascript -o frontend/src/lib/managed/
+          compact compile contracts/age_verifier.compact frontend/src/lib/managed/
+
+      - name: Run tests
+        run: |
+          cd frontend
+          npm test
 
       - name: Commit Compiled Files
         run: |

@@ -1,16 +1,24 @@
 # Midnight AnonPass
 
-## Project Links & Demo (Submission Checklist)
-- **Live Demo Link:** [https://midnight-anonpass.vercel.app](https://midnight-anonpass.vercel.app) *(Placeholder)*
-- **Demo Video:** [Watch Demo Video](./demovideo.mp4)
-- **Preprod Contract Address:** `addr_test1wp8l7eylksmjas7ypzm0q35dwnjdxxvsfn0z0lflqzgs55stpd682` *(Deployed via `scripts/deploy.ts`)*
-- **Privacy Claim:** Documented below (Users verify age without revealing birth year).
+![CI](https://github.com/arihkot/anonpass/actions/workflows/compile-compact.yml/badge.svg)
 
-## Project Overview
-Midnight AnonPass is a decentralized application (dApp) built on the Midnight blockchain. It leverages Zero-Knowledge Proofs (ZKPs) to enable users to verify their identity, credentials, or specific attributes without revealing the underlying sensitive data. This ensures maximum privacy while maintaining trust and compliance.
+## Project Links & Demo (Submission Checklist)
+- **Live Demo Link:** [https://midnight-anonpass.vercel.app](https://midnight-anonpass.vercel.app)
+- **Demo Video:** [Watch Demo Video](./demovideo.mp4)
+- **Preprod Contract Address:** Deploy interactively via the frontend using Lace/1AM on Midnight Preprod.
+- **Privacy Claim:** Documented below (users verify age without revealing birth year).
+
+## Project Overview / Product Idea
+Midnight AnonPass is a privacy-preserving age-verification dApp built on the Midnight blockchain. The product idea is simple: give users a reusable, cryptographic "age pass" that proves they meet an age threshold without ever disclosing their birth date. Venues, age-restricted websites, or any service that needs to check "18+" can ask AnonPass for a zero-knowledge proof instead of scanning IDs or storing personal data. Because the proof is generated locally and only the claim ("is adult") is revealed, users retain full control of their identity and services eliminate the liability of holding sensitive PII.
 
 ## Privacy Claim
-By utilizing advanced Zero-Knowledge (ZK) circuits, Midnight AnonPass guarantees that no sensitive user data is exposed on-chain or off-chain during the verification process. Specifically, the application proves that a user is over 18 years old using a Circom circuit without ever revealing the exact birth year in the generated proof. The proofs generated allow smart contracts to validate specific claims deterministically, ensuring that privacy is maintained as a fundamental right.
+By utilizing advanced Zero-Knowledge (ZK) circuits, Midnight AnonPass guarantees that no sensitive user data is exposed on-chain or off-chain during the verification process. Specifically, the application proves that a user is over 18 years old using a Compact circuit without ever revealing the exact birth year in the generated proof. The proofs generated allow smart contracts to validate specific claims deterministically, ensuring that privacy is maintained as a fundamental right.
+
+## Privacy Model: Public State vs Private Witness
+- **Public ledger state** (`verificationsCount`): anyone can see how many times the age-verification circuit has been called.
+- **Private witness** (`birthYear`): supplied by the user at proof time and never leaves the browser. It is not included in the transaction, not stored on-chain, and not visible to observers.
+- **What an observer can learn**: that a valid proof was submitted, that the public counter increased by one, and the transaction hash.
+- **What an observer cannot learn**: the user’s birth year, their exact age, their identity, or anything else about the private witness.
 
 ## Tech Stack
 - **Frontend**: React (Next.js), Tailwind CSS
@@ -32,23 +40,40 @@ By utilizing advanced Zero-Knowledge (ZK) circuits, Midnight AnonPass guarantees
 - [Circom](https://docs.circom.io/) installed globally for circuit compilation
 
 ### Setup Instructions
-*(These instructions will be expanded as the project matures)*
 
 1. **Clone the repository:**
    ```bash
-   git clone <your-repo-url>
-   cd midnight-anonpass
+   git clone https://github.com/arihkot/anonpass.git
+   cd anonpass
    ```
 
-2. **Frontend Setup:**
+2. **Install the Compact toolchain:**
+   ```bash
+   curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
+   export PATH="$HOME/.compact/bin:$PATH"
+   compact update
+   ```
+
+3. **Compile the Compact contract and generate managed outputs:**
+   ```bash
+   mkdir -p frontend/src/lib/managed
+   compact compile contracts/age_verifier.compact frontend/src/lib/managed/
+   ```
+   This produces `age_verifier.ts`, `contract/`, `zkir/`, and `keys/` under `frontend/src/lib/managed/`.
+
+4. **Frontend Setup:**
    ```bash
    cd frontend
    npm install
    npm run dev
    ```
+   Open [http://localhost:3000](http://localhost:3000), connect your Lace/1AM wallet on Midnight Preprod, deploy the contract, and run the age proof.
 
-3. **Circuit Compilation:**
-   Navigate to the `/circuits` directory and follow the instructions (to be added) to compile the circuits and generate the proving and verifying keys.
+5. **Run tests locally:**
+   ```bash
+   cd frontend
+   npm test
+   ```
 
-4. **Smart Contract Deployment:**
-   Navigate to `/contracts` and run the necessary build scripts to compile the contracts for the Midnight blockchain.
+6. **Smart Contract Deployment (headless):**
+   For a headless deployment using a seed, copy `scripts/.env.example` to `scripts/.env`, set `MIDNIGHT_SEED`, and run `npx tsx scripts/deploy.ts`. The recommended flow for the hackathon is to deploy directly from the UI.
