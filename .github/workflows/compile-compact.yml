@@ -1,16 +1,20 @@
-name: Compile Midnight Compact Contracts
+name: CI
 
 on:
   push:
-    paths:
-      - 'contracts/**/*.compact'
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  compile:
+  compile-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install Midnight Compact Compiler
         run: |
